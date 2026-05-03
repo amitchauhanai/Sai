@@ -189,8 +189,8 @@ class CommandRoutingSmokeTests(unittest.TestCase):
             )
         )
 
-    def test_hey_bro_stop_is_shutdown_command(self) -> None:
-        self.assertEqual(server_main.strip_wake_phrase("hey bro stop"), "stop")
+    def test_hey_sai_stop_is_shutdown_command(self) -> None:
+        self.assertEqual(server_main.strip_wake_phrase("hey sai stop"), "stop")
         self.assertTrue(server_main.is_stop_command("stop"))
 
     def test_regular_command_is_not_shutdown_command(self) -> None:

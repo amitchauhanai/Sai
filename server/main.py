@@ -1,5 +1,5 @@
 """
-Bro OS Agent — Cloud Backend v2.0
+Sai OS Agent — Cloud Backend v2.0
 Production-grade rewrite: Pydantic structured outputs, swarm sub-agents,
 SQLite persistent memory, summarization chain, coordinate guardrails.
 """
@@ -35,9 +35,9 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
-logger = logging.getLogger("bro-server")
+logger = logging.getLogger("sai-server")
 
-app = FastAPI(title="Bro OS Agent Cloud Backend", version="2.0.0")
+app = FastAPI(title="Sai OS Agent Cloud Backend", version="2.0.0")
 
 # ---------------------------------------------------------------------------
 # LLM clients
@@ -49,7 +49,7 @@ ELEVENLABS_TTS_VOICE_ID = os.getenv("ELEVENLABS_TTS_VOICE_ID", "JBFqnCBsd6RMkjVD
 ELEVENLABS_TTS_MODEL_ID = os.getenv("ELEVENLABS_TTS_MODEL_ID", "eleven_flash_v2_5")
 ELEVENLABS_TTS_OUTPUT_FORMAT = "pcm_16000"
 ELEVENLABS_TTS_SAMPLE_RATE = 16000
-BRO_VOICE_REPLIES = os.getenv("BRO_VOICE_REPLIES", "true").lower() == "true"
+SAI_VOICE_REPLIES = os.getenv("SAI_VOICE_REPLIES", "true").lower() == "true"
 DEEPGRAM_API_KEY = (
     os.getenv("DEEPGRAM_API_KEY")
     or os.getenv("DEEPGRAM_KEY")
@@ -59,14 +59,14 @@ DEEPGRAM_STT_MODEL = os.getenv("DEEPGRAM_STT_MODEL", "nova-3")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_STT_MODEL = os.getenv("GEMINI_STT_MODEL", "gemini-2.5-flash")
 STT_PROVIDER = os.getenv(
-    "BRO_STT_PROVIDER",
+    "SAI_STT_PROVIDER",
     "deepgram" if DEEPGRAM_API_KEY else ("gemini" if GEMINI_API_KEY else "elevenlabs"),
 ).strip().lower()
 STT_SAMPLE_RATE = 16000
-STT_SILENCE_SECS = float(os.getenv("BRO_STT_SILENCE_SECS", "1.1"))
-STT_MAX_UTTERANCE_SECS = float(os.getenv("BRO_STT_MAX_UTTERANCE_SECS", "12"))
-STT_MIN_SPEECH_SECS = float(os.getenv("BRO_STT_MIN_SPEECH_SECS", "0.45"))
-STT_RMS_THRESHOLD = int(os.getenv("BRO_STT_RMS_THRESHOLD", "350"))
+STT_SILENCE_SECS = float(os.getenv("SAI_STT_SILENCE_SECS", "1.1"))
+STT_MAX_UTTERANCE_SECS = float(os.getenv("SAI_STT_MAX_UTTERANCE_SECS", "12"))
+STT_MIN_SPEECH_SECS = float(os.getenv("SAI_STT_MIN_SPEECH_SECS", "0.45"))
+STT_RMS_THRESHOLD = int(os.getenv("SAI_STT_RMS_THRESHOLD", "350"))
 
 nova_client = OpenAI(
     api_key=os.getenv("AMAZON_NOVA_API_KEY"),
@@ -79,7 +79,7 @@ nova_pro_client = OpenAI(
     base_url=os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
     default_headers={
         "HTTP-Referer": os.getenv("OPENROUTER_SITE_URL", "http://localhost:8080"),
-        "X-Title": os.getenv("OPENROUTER_APP_NAME", "Bro OS Agent"),
+        "X-Title": os.getenv("OPENROUTER_APP_NAME", "Sai OS Agent"),
     },
 )
 NOVA_PRO_MODEL_ID = "amazon/nova-pro-v1"
@@ -90,7 +90,7 @@ ACTION_SETTLE_TIME = 2.0       # seconds to let the UI settle after an action
 SCREENSHOT_TIMEOUT = 5.0       # seconds to wait for a screenshot from the client
 HISTORY_COMPRESS_THRESHOLD = 9 # compress history when it exceeds this many messages
 HISTORY_RECENT_KEEP_PAIRS = 4  # keep the last N user+assistant pairs after compression
-ENABLE_CRITIC = os.getenv("BRO_CRITIC_ENABLED", "true").lower() == "true"
+ENABLE_CRITIC = os.getenv("SAI_CRITIC_ENABLED", "true").lower() == "true"
 
 # ---------------------------------------------------------------------------
 # Pydantic models — every LLM structured output is validated here
@@ -155,10 +155,10 @@ class IntentResult(BaseModel):
     corrected_command: str
 
 # ---------------------------------------------------------------------------
-# Persistent memory — SQLite at ~/.bro/memory.db
+# Persistent memory — SQLite at ~/.sai/memory.db
 # ---------------------------------------------------------------------------
 
-_MEMORY_DB_PATH = Path.home() / ".bro" / "memory.db"
+_MEMORY_DB_PATH = Path.home() / ".sai" / "memory.db"
 _db_lock = threading.Lock()
 _memory_db: typing.Optional[sqlite3.Connection] = None
 
@@ -331,7 +331,7 @@ async def _call_structured(
 def strip_wake_phrase(text: str) -> str:
     """Manual mode already handles waking; remove spoken wake words from commands."""
     cleaned = re.sub(
-        r"^\s*(?:hey|hi|hello)?\s*,?\s*bro(?:ther)?\s*[,.\-:]*\s*",
+        r"^\s*(?:hey|hi|hello)?\s*,?\s*sai(?:ther)?\s*[,.\-:]*\s*",
         "",
         text,
         flags=re.IGNORECASE,
@@ -345,7 +345,7 @@ STOP_COMMANDS = {
     "exit",
     "shutdown",
     "shut down",
-    "stop bro",
+    "stop sai",
 }
 
 
@@ -837,7 +837,7 @@ def local_simple_response(user_text: str) -> typing.Optional[str]:
     if not normalized:
         return "I'm listening. What would you like me to do?"
 
-    if normalized in {"hey bro", "hi bro", "hello bro", "bro"}:
+    if normalized in {"hey sai", "hi sai", "hello sai", "sai"}:
         return "I'm listening. Tell me the task after you press Enter."
 
     time_queries = {
@@ -945,7 +945,7 @@ def annotate_screenshot(
 @app.get("/")
 async def root():
     return {
-        "message": "Bro OS Agent Cloud Backend is running",
+        "message": "Sai OS Agent Cloud Backend is running",
         "version": "2.0.0",
         "critic_enabled": ENABLE_CRITIC,
         "memory_db": str(_MEMORY_DB_PATH),
@@ -958,7 +958,7 @@ async def health():
         "status": "ok",
         "websocket": "/ws/agent",
         "stt_provider": STT_PROVIDER,
-        "voice_replies": BRO_VOICE_REPLIES,
+        "voice_replies": SAI_VOICE_REPLIES,
     }
 
 
@@ -1147,7 +1147,7 @@ async def websocket_endpoint(websocket: WebSocket):  # noqa: C901
             return " | ".join(parts)
 
         async def send_voice_reply(text: str) -> None:
-            if not BRO_VOICE_REPLIES:
+            if not SAI_VOICE_REPLIES:
                 return
             try:
                 loop = asyncio.get_running_loop()
@@ -1174,7 +1174,7 @@ async def websocket_endpoint(websocket: WebSocket):  # noqa: C901
                 return MemoryContext()
 
             prompt = (
-                f'You are the Memory Sub-Agent for Bro, a macOS desktop assistant.\n'
+                f'You are the Memory Sub-Agent for Sai, a macOS desktop assistant.\n'
                 f'Given the CURRENT TASK and past memory, identify what is RELEVANT.\n\n'
                 f'CURRENT TASK: "{task}"\n\n'
                 f'PAST SESSIONS:\n{json.dumps(recent, indent=2)}\n\n'
@@ -1344,7 +1344,7 @@ async def websocket_endpoint(websocket: WebSocket):  # noqa: C901
 
         async def interpret_intent(raw: str) -> str:
             prompt = (
-                f"You are a voice command interpreter for Bro, a macOS desktop assistant.\n"
+                f"You are a voice command interpreter for Sai, a macOS desktop assistant.\n"
                 f"SCREEN CONTEXT: {_app_ctx_summary()}\n"
                 f'RAW TRANSCRIPTION: "{raw}"\n\n'
                 "Reconstruct the user's ACTUAL INTENDED COMMAND from the (possibly garbled) transcription.\n"
@@ -1381,7 +1381,7 @@ async def websocket_endpoint(websocket: WebSocket):  # noqa: C901
                 return action
 
             routing_prompt = (
-                f"You are the Task Router for Bro, a macOS desktop assistant.\n"
+                f"You are the Task Router for Sai, a macOS desktop assistant.\n"
                 f"SCREEN CONTEXT: {ctx}\n\n"
                 "SIMPLE = single fire-and-forget action that does NOT need to see the screen:\n"
                 "  - Launch an app via Spotlight\n"
@@ -1475,7 +1475,7 @@ async def websocket_endpoint(websocket: WebSocket):  # noqa: C901
                     parts.append("Relevant facts: " + "; ".join(memory.relevant_facts))
                 memory_block = "\n\nMEMORY:\n" + "\n".join(parts)
 
-            SYSTEM_PROMPT = f"""You are the Senior Vision Specialist for Bro, a macOS desktop agent.
+            SYSTEM_PROMPT = f"""You are the Senior Vision Specialist for Sai, a macOS desktop agent.
 
 SCREEN CONTEXT: {ctx}{memory_block}
 
@@ -1803,7 +1803,7 @@ Output ONLY valid JSON:
 
             if is_stop_command(full_text):
                 logger.info("Stop command received. Asking client to shut down.")
-                await send_voice_reply("Stopping Bro.")
+                await send_voice_reply("Stopping Sai.")
                 await websocket.send_text(json.dumps({"command": "shutdown"}))
                 await websocket.close()
                 return

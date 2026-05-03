@@ -4,7 +4,7 @@ Guide for AI coding agents and future contributors working on this project.
 
 ## Project Snapshot
 
-Bro is a voice-native macOS OS co-pilot. The local client listens for a wake word or manual start, captures microphone audio and screenshots, executes mouse/keyboard actions, and shows a macOS overlay. The server receives the client WebSocket stream, uses ElevenLabs for speech-to-text, Amazon Nova/OpenRouter models for routing and vision reasoning, then sends executable commands back to the client.
+Sai is a voice-native macOS OS co-pilot. The local client listens for a wake word or manual start, captures microphone audio and screenshots, executes mouse/keyboard actions, and shows a macOS overlay. The server receives the client WebSocket stream, uses ElevenLabs for speech-to-text, Amazon Nova/OpenRouter models for routing and vision reasoning, then sends executable commands back to the client.
 
 Primary flow:
 
@@ -18,7 +18,7 @@ Primary flow:
 - `setup_mac.sh` - one-shot macOS setup script for client/server virtual environments.
 - `client/wake_word.py` - local macOS client entry point: wake mode, mic streaming, screenshots, overlay, app context, and action execution.
 - `client/url_utils.py` - URL normalization for spoken/browser commands.
-- `client/HeyBro_mac.ppn` - custom Picovoice Porcupine wake-word model.
+- `client/HeySai_mac.ppn` - custom Picovoice Porcupine wake-word model.
 - `client/requirements.txt` - client dependencies.
 - `client/.env.example` - client environment template.
 - `server/main.py` - FastAPI app, WebSocket endpoint, STT integration, model calls, deterministic simple actions, vision loop, memory, and guardrails.
@@ -62,19 +62,19 @@ OPENROUTER_API_KEY=...
 ELEVENLABS_API_KEY=...
 DEEPGRAM_API_KEY=...
 GEMINI_API_KEY=...
-BRO_STT_PROVIDER=deepgram
+SAI_STT_PROVIDER=deepgram
 ```
 
 Client defaults to manual activation:
 
 ```bash
-BRO_WAKE_MODE=manual
+SAI_WAKE_MODE=manual
 ```
 
 For real wake-word mode, set:
 
 ```bash
-BRO_WAKE_MODE=auto
+SAI_WAKE_MODE=auto
 PICOVOICE_ACCESS_KEY=...
 ```
 
@@ -173,7 +173,7 @@ For command-routing changes, add or update tests in `tests/test_smoke.py`.
   Keep environment-driven values near the top of `server/main.py` and document new `.env` keys in `server/.env.example`.
 
 - Change wake-word behavior:
-  Work in `client/wake_word.py` and keep `BRO_WAKE_MODE=manual` usable for development without Picovoice.
+  Work in `client/wake_word.py` and keep `SAI_WAKE_MODE=manual` usable for development without Picovoice.
 
 ## Safety Rules
 

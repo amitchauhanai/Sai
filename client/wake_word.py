@@ -1,6 +1,6 @@
 
 """
-Bro OS Agent — macOS Client v2.0
+Sai OS Agent — macOS Client v2.0
 Production-grade rewrite:
   - Dynamic screen resolution (no hardcoded canvas)
   - Deterministic UI-ready checks replacing time.sleep() in action primitives
@@ -157,7 +157,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
-logger = logging.getLogger("bro-client")
+logger = logging.getLogger("sai-client")
 
 _INSTANCE_LOCK_FILE = None
 DEFAULT_SERVER_WS_URL = "ws://localhost:8080/ws/agent"
@@ -168,9 +168,9 @@ STOP_COMMANDS = {
     "exit",
     "shutdown",
     "shut down",
-    "hey bro stop",
-    "bro stop",
-    "stop bro",
+    "hey sai stop",
+    "sai stop",
+    "stop sai",
 }
 
 
@@ -181,7 +181,7 @@ def is_stop_command(text: Optional[str]) -> bool:
 
 
 def overlay_always_on() -> bool:
-    return os.getenv("BRO_OVERLAY_ALWAYS_ON", "true").strip().lower() not in {
+    return os.getenv("SAI_OVERLAY_ALWAYS_ON", "true").strip().lower() not in {
         "0",
         "false",
         "no",
@@ -190,11 +190,11 @@ def overlay_always_on() -> bool:
 
 
 def server_health_url() -> str:
-    return os.getenv("BRO_SERVER_HEALTH_URL", DEFAULT_SERVER_HEALTH_URL).strip()
+    return os.getenv("SAI_SERVER_HEALTH_URL", DEFAULT_SERVER_HEALTH_URL).strip()
 
 
 def server_ws_url() -> str:
-    return os.getenv("BRO_SERVER_WS_URL", DEFAULT_SERVER_WS_URL).strip()
+    return os.getenv("SAI_SERVER_WS_URL", DEFAULT_SERVER_WS_URL).strip()
 
 
 def server_health_check_sync(timeout: float = 1.5) -> tuple[bool, str]:
@@ -223,13 +223,13 @@ async def wait_for_server_ready(timeout: float = 2.0) -> tuple[bool, str]:
 def acquire_single_instance_lock() -> None:
     """Prevent multiple client instances from fighting over mic, stdin, and overlay."""
     global _INSTANCE_LOCK_FILE
-    lock_path = os.path.join(tempfile.gettempdir(), "bro-client.lock")
+    lock_path = os.path.join(tempfile.gettempdir(), "sai-client.lock")
     _INSTANCE_LOCK_FILE = open(lock_path, "w")
     try:
         fcntl.flock(_INSTANCE_LOCK_FILE, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except BlockingIOError:
         logger.error(
-            "Another Bro client is already running. Quit the old wake_word.py "
+            "Another Sai client is already running. Quit the old wake_word.py "
             "process before starting a new one."
         )
         sys.exit(1)
@@ -366,7 +366,7 @@ def capture_screen_sync() -> dict:
     logical resolution keeps token count reasonable while matching the
     coordinate space used by the agent and click mapping.
     """
-    file_path = os.path.join(tempfile.gettempdir(), "bro_capture.png")
+    file_path = os.path.join(tempfile.gettempdir(), "sai_capture.png")
     canvas_w, canvas_h = _get_logical_screen_size()
 
     def _encode_image(img: Image.Image, source: str) -> dict:
@@ -410,7 +410,7 @@ def capture_screen_sync() -> dict:
     return {
         "error": (
             "Screen capture failed. Grant Screen Recording permission to the "
-            "Terminal or IDE running Bro, then fully quit and reopen it. "
+            "Terminal or IDE running Sai, then fully quit and reopen it. "
             f"screencapture={native_error}; mss={mss_error}; "
             f"pyautogui={pyautogui_error}"
         )
@@ -989,7 +989,7 @@ class ManualWakeWordDetector:
 
 class ActivityOverlay:
     """
-    Fullscreen animated border overlay indicating Bro is active.
+    Fullscreen animated border overlay indicating Sai is active.
     Runs the NSApplication run-loop in a dedicated thread so it never blocks
     the asyncio event loop.
     """
@@ -1003,7 +1003,7 @@ class ActivityOverlay:
         if self._thread and self._thread.is_alive():
             return
         self._thread = threading.Thread(
-            target=self._run, name="BroActivityOverlay", daemon=True
+            target=self._run, name="SaiActivityOverlay", daemon=True
         )
         self._thread.start()
 
@@ -1390,7 +1390,7 @@ async def stream_audio_to_websocket(
     if not ok:
         logger.error("Server readiness check failed: %s", detail)
         print(
-            "\n >>> Bro server is not reachable. Start it with:\n"
+            "\n >>> Sai server is not reachable. Start it with:\n"
             "     cd server && ./venv/bin/uvicorn main:app --host 127.0.0.1 --port 8080\n"
         )
         session_active.clear()
@@ -1448,7 +1448,7 @@ async def stream_audio_to_websocket(
         if not stop_event.is_set():
             overlay.set_active(overlay_always_on())
             logger.info("Ready for the next command.")
-            print("\n >>> Ready for next command. Say Hey Bro, press Enter, or type a command.\n")
+            print("\n >>> Ready for next command. Say Hey Sai, press Enter, or type a command.\n")
 
 
 # ---------------------------------------------------------------------------
@@ -1466,8 +1466,8 @@ def on_wake_word(
         return
 
     if is_stop_command(text_command):
-        logger.info("Stop command received. Shutting down Bro.")
-        print("\n >>> Stop command received. Shutting down Bro.\n")
+        logger.info("Stop command received. Shutting down Sai.")
+        print("\n >>> Stop command received. Shutting down Sai.\n")
         stop_event.set()
         overlay.set_active(False)
         overlay.shutdown()
@@ -1507,10 +1507,10 @@ async def main_async(
 ) -> None:
     load_dotenv()
 
-    wake_mode = os.environ.get("BRO_WAKE_MODE", "auto").strip().lower()
+    wake_mode = os.environ.get("SAI_WAKE_MODE", "auto").strip().lower()
     access_key = os.environ.get("PICOVOICE_ACCESS_KEY")
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    keyword_path = os.path.join(script_dir, "HeyBro_mac.ppn")
+    keyword_path = os.path.join(script_dir, "HeySai_mac.ppn")
 
     detector = None
     session_active = threading.Event()
@@ -1562,10 +1562,10 @@ async def main_async(
         detector = ManualWakeWordDetector(callback)
 
     detector.start()
-    logger.info("Bro is ready. Listening for wake word. Press Ctrl+C to quit.")
+    logger.info("Sai is ready. Listening for wake word. Press Ctrl+C to quit.")
     if overlay_always_on():
         overlay.set_active(True)
-    print("\n >>> Bro is listening. Say Hey Bro, press Enter, or type a command.\n")
+    print("\n >>> Sai is listening. Say Hey Sai, press Enter, or type a command.\n")
 
     try:
         while not stop_event.is_set():
@@ -1629,7 +1629,7 @@ if __name__ == "__main__":
         asyncio_thread = threading.Thread(
             target=_run_asyncio_loop,
             args=(overlay, stop_event),
-            name="BroAsyncioLoop",
+            name="SaiAsyncioLoop",
             daemon=True,
         )
         asyncio_thread.start()

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# setup_mac.sh — One-shot setup script for Bro on macOS
+# setup_mac.sh — One-shot setup script for Sai on macOS
 # Usage: bash setup_mac.sh
 
 set -euo pipefail
@@ -101,7 +101,7 @@ fi
 # ── 5. macOS permissions reminder ────────────────────────────────────────────
 section "macOS Permissions Checklist"
 echo ""
-echo "  Bro requires three macOS permissions granted to your Terminal or IDE:"
+echo "  Sai requires three macOS permissions granted to your Terminal or IDE:"
 echo ""
 echo "  1. Accessibility    → System Settings → Privacy & Security → Accessibility"
 echo "  2. Screen Recording → System Settings → Privacy & Security → Screen Recording"
@@ -124,4 +124,4 @@ echo ""
 echo "  To start the client:"
 echo "    cd client && venv/bin/python wake_word.py"
 echo ""
-echo "  Say ${BOLD}\"Hey Bro\"${RESET} to begin."
+echo "  Say ${BOLD}\"Hey Sai\"${RESET} to begin."

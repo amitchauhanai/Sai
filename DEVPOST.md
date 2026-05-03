@@ -1,9 +1,9 @@
-# Bro — Voice-Native Agentic OS Co-Pilot
+# Sai — Voice-Native Agentic OS Co-Pilot
 
 ### Your computer can finally see. Your voice is the only interface you need.
 
-> *"Hey Bro, answer this LeetCode problem."*
-> Bro reads the problem from the screen, writes a complete solution in the code editor, and clicks Submit — all from a single voice command.
+> *"Hey Sai, answer this LeetCode problem."*
+> Sai reads the problem from the screen, writes a complete solution in the code editor, and clicks Submit — all from a single voice command.
 
 ---
 
@@ -13,19 +13,19 @@ Every voice assistant today is **blind**. Siri, Alexa, and Cortana can set timer
 
 Meanwhile, traditional UI automation tools are **brittle** — they rely on DOM selectors, accessibility trees, or hard-coded pixel coordinates that break the moment a website redesigns a button.
 
-**There is no system today that can hear what you want, see what's on your screen, and act on it with human-level understanding.** We built Bro to change that.
+**There is no system today that can hear what you want, see what's on your screen, and act on it with human-level understanding.** We built Sai to change that.
 
 ---
 
 ## What It Does
 
-**Bro** is a voice-native OS co-pilot that combines real-time speech recognition with Amazon Nova's multimodal vision reasoning to operate your entire macOS desktop — any app, any website, any workflow — through natural voice commands.
+**Sai** is a voice-native OS co-pilot that combines real-time speech recognition with Amazon Nova's multimodal vision reasoning to operate your entire macOS desktop — any app, any website, any workflow — through natural voice commands.
 
-Bro doesn't parse HTML. It doesn't read the DOM. It **looks at your screen** the same way a human would, reasons about what it sees, and executes OS-level actions with pixel-perfect accuracy. It works on *every* application because it operates at the visual layer, not the API layer.
+Sai doesn't parse HTML. It doesn't read the DOM. It **looks at your screen** the same way a human would, reasons about what it sees, and executes OS-level actions with pixel-perfect accuracy. It works on *every* application because it operates at the visual layer, not the API layer.
 
-**Example workflows Bro handles end-to-end:**
+**Example workflows Sai handles end-to-end:**
 
-| Voice Command | What Bro Does |
+| Voice Command | What Sai Does |
 |---------------|---------------|
 | *"Open Chrome"* | Triggers Spotlight → types "Chrome" → launches the app in under 1 second |
 | *"Go to github.com"* | Detects the active browser and opens the URL directly (~1s) |
@@ -37,13 +37,13 @@ Bro doesn't parse HTML. It doesn't read the DOM. It **looks at your screen** the
 
 ## How We Built It — System Architecture
 
-Bro is a distributed, two-tier system with a **local macOS client** and a **cloud server**, connected over a persistent WebSocket for real-time bidirectional communication.
+Sai is a distributed, two-tier system with a **local macOS client** and a **cloud server**, connected over a persistent WebSocket for real-time bidirectional communication.
 
 ### Local macOS Client (Python + PyObjC + PyAutoGUI)
 
 The client is a full native macOS application responsible for five critical subsystems:
 
-1. **Wake Word Engine (Picovoice Porcupine)** — A custom-trained, on-device keyword model (`HeyBro_mac.ppn`) runs continuously in a background thread, listening for "Hey Bro" with zero cloud latency. Sensitivity is tuned to 0.8 to balance false positives and missed activations.
+1. **Wake Word Engine (Picovoice Porcupine)** — A custom-trained, on-device keyword model (`HeySai_mac.ppn`) runs continuously in a background thread, listening for "Hey Sai" with zero cloud latency. Sensitivity is tuned to 0.8 to balance false positives and missed activations.
 
 2. **Microphone PCM Stream (PyAudio)** — Upon wake word detection, the client opens a 16kHz mono PCM audio stream and pushes raw audio frames to an `asyncio.Queue`, which are forwarded over the WebSocket to the cloud for real-time transcription.
 
@@ -51,7 +51,7 @@ The client is a full native macOS application responsible for five critical subs
 
 4. **OS-Level Executor (PyAutoGUI)** — Executes click, type, scroll, and hotkey commands at the OS level. Click coordinates arrive from the server in a normalized `[0, 1000] × [0, 1000]` space and are mapped to actual screen pixels at runtime, making the system resolution-independent across any display.
 
-5. **Native Activity Overlay (PyObjC / NSPanel)** — A custom `NSPanel`-based overlay renders an animated, color-shifting dashed border around the entire screen while Bro is processing. This is not a web overlay — it's a first-class macOS window that uses `NSWindowCollectionBehaviorCanJoinAllSpaces` to appear across all Spaces and full-screen apps, `setIgnoresMouseEvents_(True)` to remain fully click-through, and automatically suspends itself during screenshot capture so it never appears in the agent's visual field.
+5. **Native Activity Overlay (PyObjC / NSPanel)** — A custom `NSPanel`-based overlay renders an animated, color-shifting dashed border around the entire screen while Sai is processing. This is not a web overlay — it's a first-class macOS window that uses `NSWindowCollectionBehaviorCanJoinAllSpaces` to appear across all Spaces and full-screen apps, `setIgnoresMouseEvents_(True)` to remain fully click-through, and automatically suspends itself during screenshot capture so it never appears in the agent's visual field.
 
 ### Cloud Server (FastAPI + WebSocket Gateway)
 
@@ -69,11 +69,11 @@ The server orchestrates all AI reasoning through a pipeline of four distinct sta
 
 ## The Multi-Model AI Brain — Our Core Innovation
 
-Bro doesn't just call one AI model. It routes every voice command through a **four-stage, multi-model pipeline** that dynamically selects the cheapest and fastest path to execution.
+Sai doesn't just call one AI model. It routes every voice command through a **four-stage, multi-model pipeline** that dynamically selects the cheapest and fastest path to execution.
 
 ### Stage 1: Intent Interpretation (Amazon Nova Lite)
 
-Speech-to-text is inherently noisy. The raw transcription "they're not data sharing on twitter" is meaningless to a command executor. Bro's Intent Interpreter uses Nova Lite with screen context (active app, browser URL) to reconstruct the user's actual intent: **"Turn off data sharing on Twitter."** It handles homophones ("clothes" → "close"), near-misses ("read it" → "Reddit"), and garbled speech with near-perfect accuracy.
+Speech-to-text is inherently noisy. The raw transcription "they're not data sharing on twitter" is meaningless to a command executor. Sai's Intent Interpreter uses Nova Lite with screen context (active app, browser URL) to reconstruct the user's actual intent: **"Turn off data sharing on Twitter."** It handles homophones ("clothes" → "close"), near-misses ("read it" → "Reddit"), and garbled speech with near-perfect accuracy.
 
 ### Stage 2: Task Routing (Amazon Nova Lite)
 
@@ -82,7 +82,7 @@ Not every command needs a 25-step vision agent. The Task Router classifies each 
 - **SIMPLE** — Single fire-and-forget actions (launch an app, open a URL, press a hotkey). Resolved in under 1 second with no vision model involved.
 - **ADVANCED** — Multi-step workflows requiring screen interaction (navigate settings, fill forms, solve coding problems). Routed to the full Vision Agent Loop.
 
-This hybrid routing means Bro is **instant for simple tasks** and **deeply capable for complex ones** — never wasting expensive vision model calls on "Open Spotify."
+This hybrid routing means Sai is **instant for simple tasks** and **deeply capable for complex ones** — never wasting expensive vision model calls on "Open Spotify."
 
 ### Stage 3: Simple Executor (Amazon Nova Lite)
 
@@ -90,7 +90,7 @@ For SIMPLE tasks, Nova Lite generates a single structured JSON command (e.g., `{
 
 ### Stage 4: Vision Agent Loop (Amazon Nova Pro — Multimodal)
 
-This is where the magic happens. For ADVANCED tasks, Bro enters an autonomous **Plan → Act → Verify** agent loop powered by Amazon Nova Pro's multimodal reasoning:
+This is where the magic happens. For ADVANCED tasks, Sai enters an autonomous **Plan → Act → Verify** agent loop powered by Amazon Nova Pro's multimodal reasoning:
 
 **How one iteration works:**
 
@@ -160,7 +160,7 @@ The loop runs for up to **25 autonomous steps**, with the model maintaining stra
 
 ## Amazon Nova Integration — Deep, Multi-Layered Usage
 
-Bro makes **deep, multi-layered use** of Amazon Nova foundation models across every stage of its pipeline:
+Sai makes **deep, multi-layered use** of Amazon Nova foundation models across every stage of its pipeline:
 
 | Component | Nova Model | Capability Leveraged |
 |-----------|-----------|---------------------|
@@ -169,7 +169,7 @@ Bro makes **deep, multi-layered use** of Amazon Nova foundation models across ev
 | **Simple Command Generation** | Nova Lite | Structured JSON output — converts natural language to executable system commands |
 | **Vision Agent Loop** | Nova Pro | **Multimodal reasoning** — analyzes annotated screenshots, plans multi-step strategies, outputs precise UI coordinates, tracks progress across sequential screenshots, and visually confirms task completion |
 
-Nova Pro's multimodal capabilities are the **foundation of Bro's intelligence**. In every step of the agent loop, it must:
+Nova Pro's multimodal capabilities are the **foundation of Sai's intelligence**. In every step of the agent loop, it must:
 - Identify UI elements (buttons, text fields, menus, toggles) by **visual appearance alone** — no DOM, no accessibility tree
 - Reason about **spatial layout** to output precise click coordinates in normalized space
 - Track **multi-step progress** across sequential screenshots while maintaining strategic coherence
@@ -182,7 +182,7 @@ Nova Pro's multimodal capabilities are the **foundation of Bro's intelligence**.
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| Wake Word | Picovoice Porcupine | Offline, on-device keyword detection ("Hey Bro") with custom-trained model |
+| Wake Word | Picovoice Porcupine | Offline, on-device keyword detection ("Hey Sai") with custom-trained model |
 | Speech-to-Text | ElevenLabs Scribe v2 | Real-time streaming ASR with VAD over WebSocket |
 | Intent + Routing | Amazon Nova Lite | Command interpretation, complexity classification, and structured command generation |
 | Vision Reasoning | Amazon Nova Pro | Multimodal screenshot analysis, strategic planning, and autonomous UI interaction |
@@ -202,15 +202,15 @@ Nova Pro's multimodal capabilities are the **foundation of Bro's intelligence**.
 
 - **Vision agents need guardrails, not just prompts.** Prompt engineering alone cannot prevent agentic loops. We needed algorithmic cycle detection, verification gates, and hard-bail mechanisms to make the agent reliable.
 
-- **The visual layer is the universal API.** By operating on screenshots instead of DOM/accessibility trees, Bro works on every app, every website, and every workflow — including native macOS apps that have no web API at all. This is a fundamentally different approach to automation.
+- **The visual layer is the universal API.** By operating on screenshots instead of DOM/accessibility trees, Sai works on every app, every website, and every workflow — including native macOS apps that have no web API at all. This is a fundamentally different approach to automation.
 
 - **Threading on macOS is an art.** Coordinating AppKit (main thread only), asyncio (its own event loop), and blocking audio capture (dedicated thread) required careful architecture. `call_soon_threadsafe()` and thread-safe queues became our best friends.
 
 ---
 
-## What's Next for Bro
+## What's Next for Sai
 
-- **Text-to-Speech responses** — Bro speaks back to confirm actions and report results using Amazon Nova's voice capabilities
+- **Text-to-Speech responses** — Sai speaks back to confirm actions and report results using Amazon Nova's voice capabilities
 - **Multi-monitor support** — Extend the vision pipeline to reason across multiple displays
 - **Memory and context persistence** — Remember user preferences and frequently used workflows across sessions
 - **Linux and Windows support** — Port the OS execution layer to support cross-platform operation
@@ -218,6 +218,6 @@ Nova Pro's multimodal capabilities are the **foundation of Bro's intelligence**.
 
 ---
 
-**Stop typing. Start speaking. Bro is the future of human-computer interaction.**
+**Stop typing. Start speaking. Sai is the future of human-computer interaction.**
 
 Built with Amazon Nova for the [Amazon Nova AI Hackathon](https://amazon-nova.devpost.com/) #AmazonNova
