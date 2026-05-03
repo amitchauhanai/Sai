@@ -1,0 +1,9 @@
+pvporcupine>=3.0.4
+pyaudio
+pvporcupine
+python-dotenv
+websockets>=1.0.0
+mss
+pyautogui
+pyobjc
+Pillow
