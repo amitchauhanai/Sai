@@ -1262,7 +1262,10 @@ async def receive_audio_from_websocket(
                 command = data.get("command")
 
                 if command == "set_activity":
-                    overlay.set_active(data.get("state") == "active")
+                    active = data.get("state") == "active"
+                    if not active and overlay_always_on() and not stop_event.is_set():
+                        active = True
+                    overlay.set_active(active)
 
                 elif command == "shutdown":
                     logger.info("Shutdown command received from server.")

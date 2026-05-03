@@ -405,6 +405,3 @@ sai/
 <p align="center">
   <b>Stop typing. Start speaking. Sai is the future of human-computer interaction.</b>
   <br/><br/>
-  Built with Amazon Nova for the <a href="https://amazon-nova.devpost.com/">Amazon Nova AI Hackathon</a> #AmazonNova
-</p>
-smoke test make suree eveything isworking Chandramukhi check for any virbility if found fixthat and makesure mutiple comands exceution is working mutkisteps

@@ -1,6 +1,6 @@
-# Bro OS Agent - Cloud Backend Server
+# Sai OS Agent - Cloud Backend Server
 
-This directory contains the cloud backend component for the Bro OS Agent. It is built using **FastAPI** to provide a lightweight, high-performance WebSocket server capable of handling continuous data streaming (such as audio).
+This directory contains the cloud backend component for the Sai OS Agent. It is built using **FastAPI** to provide a lightweight, high-performance WebSocket server capable of handling continuous data streaming (such as audio).
 
 ## Core Components
 
